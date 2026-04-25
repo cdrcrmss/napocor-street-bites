@@ -7,6 +7,7 @@ export default function LoginPage() {
     const router = useRouter();
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 
@@ -67,13 +68,22 @@ export default function LoginPage() {
         <
         label >
         Password / PIN <
-        input type = "password"
+        div className = "password-wrap" >
+        <
+        input type = { showPassword ? "text" : "password" }
         value = { password }
         onChange = {
             (event) => setPassword(event.target.value) }
         required autoComplete = "current-password" /
         >
         <
+        button type = "button"
+        className = "password-toggle"
+        onClick = {
+            () => setShowPassword((prev) => !prev) } >
+        { showPassword ? "Hide" : "Show" } <
+        /button> <
+        /div> <
         /label>
 
         {
