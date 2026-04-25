@@ -29,6 +29,44 @@
 
         const money = (value) => currency.format(Number(value || 0));
 
+        function getBundleFromName(name) {
+            const match = String(name || "").match(/(\d+)\s*for\s*([0-9]+(?:\.[0-9]+)?)/i);
+            if (!match) {
+                return null;
+            }
+
+            return {
+                quantity: Number(match[1]),
+                price: Number(match[2])
+            };
+        }
+
+        function renderWithFocus(inputId) {
+            const current = document.getElementById(inputId);
+            let start = null;
+            let end = null;
+
+            if (current && typeof current.selectionStart === "number") {
+                start = current.selectionStart;
+                end = current.selectionEnd;
+            }
+
+            render();
+
+            const next = document.getElementById(inputId);
+            if (!next) {
+                return;
+            }
+
+            next.focus();
+            if (typeof start === "number" && typeof next.setSelectionRange === "function") {
+                const max = next.value.length;
+                const safeStart = Math.min(start, max);
+                const safeEnd = Math.min(typeof end === "number" ? end : start, max);
+                next.setSelectionRange(safeStart, safeEnd);
+            }
+        }
+
         function toDateTime(value) {
             return new Date(value).toLocaleString("en-PH", {
                 year: "numeric",
@@ -173,37 +211,37 @@
         function pushCashInput(text) {
             if (text === "CLR") {
                 state.cashInput = "";
-                render();
+                renderWithFocus("cashInput");
                 return;
             }
 
             if (text === "BACK") {
                 state.cashInput = state.cashInput.slice(0, -1);
-                render();
+                renderWithFocus("cashInput");
                 return;
             }
 
             const next = sanitizeNumberInput(state.cashInput + text);
             state.cashInput = next;
-            render();
+            renderWithFocus("cashInput");
         }
 
         function addCashShortcut(value) {
             const current = getCashReceived();
             state.cashInput = String(current + value);
-            render();
+            renderWithFocus("cashInput");
         }
 
         function calculatorPress(text) {
             if (text === "C") {
                 state.calcInput = "";
-                render();
+                renderWithFocus("calculatorInput");
                 return;
             }
 
             if (text === "DEL") {
                 state.calcInput = state.calcInput.slice(0, -1);
-                render();
+                renderWithFocus("calculatorInput");
                 return;
             }
 
@@ -230,12 +268,12 @@
                     setNotice("Invalid calculator expression.");
                 }
 
-                render();
+                renderWithFocus("calculatorInput");
                 return;
             }
 
             state.calcInput += text;
-            render();
+            renderWithFocus("calculatorInput");
         }
 
         function printReceipt(sale) {
@@ -493,12 +531,12 @@
 
                 if (target.id === "posSearch") {
                     state.posSearch = target.value;
-                    render();
+                    renderWithFocus("posSearch");
                 }
 
                 if (target.id === "inventorySearch") {
                     state.inventorySearch = target.value;
-                    render();
+                    renderWithFocus("inventorySearch");
                 }
 
                 if (target.id === "salesSearch") {
@@ -507,12 +545,12 @@
 
                 if (target.id === "cashInput") {
                     state.cashInput = sanitizeNumberInput(target.value);
-                    render();
+                    renderWithFocus("cashInput");
                 }
 
                 if (target.id === "calculatorInput") {
                     state.calcInput = target.value;
-                    render();
+                    renderWithFocus("calculatorInput");
                 }
             });
 
@@ -721,9 +759,6 @@
         function filteredProductsForPos() {
             const q = state.posSearch.trim().toLowerCase();
             return state.products.filter((item) => {
-                if (item.stock <= 0) {
-                    return false;
-                }
                 if (!q) {
                     return true;
                 }
@@ -734,23 +769,31 @@
         function renderPosProducts() {
             const list = filteredProductsForPos();
             if (list.length === 0) {
-                return `<p class="spa-muted">No available products for the search.</p>`;
+                return `<p class="spa-muted">No products found for the current search.</p>`;
             }
 
             return list
-                .map(
-                    (item) => `
+                .map((item) => {
+                        const bundle = getBundleFromName(item.name);
+                        return `
       <div class="spa-product">
         <p class="spa-product-name">${item.name}</p>
+                ${
+                    bundle
+                        ? `<p class="spa-bundle">Bundle price: ${bundle.quantity} for ${money(bundle.price)}</p>`
+                        : ""
+                }
         <p class="spa-muted">${item.category}</p>
         <div class="spa-product-meta">
           <span>Stock: ${item.stock}</span>
           <strong>${money(item.sellPrice)}</strong>
         </div>
-        <button class="spa-btn primary" data-action="add-cart" data-id="${item.id}">Add to Cart</button>
+                <button class="spa-btn primary ${item.stock <= 0 ? "disabled" : ""}" data-action="add-cart" data-id="${item.id}" ${
+                    item.stock <= 0 ? "disabled" : ""
+                }>${item.stock <= 0 ? "Out of Stock" : "Add to Cart"}</button>
       </div>
-    `
-                )
+        `;
+                                })
                 .join("");
         }
 
@@ -762,9 +805,13 @@
             return state.cart
                 .map((line) => {
                     const lineTotal = line.quantity * line.sellPrice;
+                                        const bundle = getBundleFromName(line.name);
                     return `
           <tr>
-            <td>${line.name}</td>
+                        <td>
+                            ${line.name}
+                            ${bundle ? `<div class="spa-bundle-inline">Bundle: ${bundle.quantity} for ${money(bundle.price)}</div>` : ""}
+                        </td>
             <td>
               <button class="spa-mini" data-action="cart-minus" data-id="${line.productId}">-</button>
               <span class="spa-qty">${line.quantity}</span>
