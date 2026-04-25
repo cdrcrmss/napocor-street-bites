@@ -4,7 +4,8 @@ import { COOKIE_NAME, verifySession } from "@/lib/auth";
 export async function middleware(request) {
     const { pathname } = request.nextUrl;
 
-    const isPublicRoute = pathname.startsWith("/login");
+    const isPublicRoute =
+        pathname.startsWith("/login") || pathname === "/api/auth/login";
     if (isPublicRoute) {
         return NextResponse.next();
     }
