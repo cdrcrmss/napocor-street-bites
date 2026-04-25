@@ -1,0 +1,157 @@
+#spa-root {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.spa-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.spa-kicker {
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #ff7a18;
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+
+.spa-title {
+    margin: 5px 0;
+}
+
+.spa-tabs {
+    display: flex;
+    gap: 8px;
+    margin: 14px 0;
+    flex-wrap: wrap;
+}
+
+.spa-tab,
+.spa-btn,
+.spa-mini {
+    border: 1px solid #e8dcc8;
+    background: #fff;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.spa-tab {
+    padding: 10px 14px;
+    font-weight: 700;
+}
+
+.spa-tab.active,
+.spa-btn.primary {
+    background: linear-gradient(120deg, #ff7a18, #ffbe45);
+    color: #231f1a;
+}
+
+.spa-grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.spa-card {
+    border: 1px solid #e8dcc8;
+    border-radius: 14px;
+    background: #fff;
+    padding: 12px;
+    margin-bottom: 10px;
+}
+
+.spa-card h2,
+.spa-card h3 {
+    margin: 0 0 8px;
+}
+
+.spa-split {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 10px;
+}
+
+.spa-products {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    gap: 8px;
+}
+
+.spa-product {
+    border: 1px solid #e8dcc8;
+    border-radius: 10px;
+    padding: 10px;
+    background: #fff9ef;
+}
+
+.spa-form {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.spa-form label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 0.9rem;
+}
+
+.spa-input,
+.spa-select {
+    border: 1px solid #e8dcc8;
+    border-radius: 8px;
+    padding: 8px;
+}
+
+.spa-btn {
+    padding: 8px 12px;
+    font-weight: 700;
+}
+
+.spa-mini {
+    padding: 4px 6px;
+    margin-right: 4px;
+}
+
+.spa-table-wrap {
+    overflow: auto;
+}
+
+.spa-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.spa-table th,
+.spa-table td {
+    text-align: left;
+    border-bottom: 1px dashed #e8dcc8;
+    padding: 8px;
+}
+
+.spa-muted {
+    color: #6f7482;
+}
+
+.spa-notice {
+    padding: 10px;
+    margin: 8px 0;
+    border: 1px solid #ffd0a6;
+    border-radius: 10px;
+    background: #fff4e8;
+    color: #9a3412;
+}
+
+@media (max-width: 1024px) {
+    .spa-grid-3,
+    .spa-form,
+    .spa-split {
+        grid-template-columns: 1fr;
+    }
+}

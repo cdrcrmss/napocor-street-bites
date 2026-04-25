@@ -1,0 +1,54 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  id         String   @id @default(cuid())
+  name       String
+  category   String
+  costPrice  Decimal  @db.Decimal(10, 2)
+  sellPrice  Decimal  @db.Decimal(10, 2)
+  stock      Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  saleItems  SaleItem[]
+
+  @@index([name])
+  @@index([category])
+}
+
+model Sale {
+  id           String    @id @default(cuid())
+  receiptCode  String    @unique
+  subtotal     Decimal   @db.Decimal(10, 2)
+  totalProfit  Decimal   @db.Decimal(10, 2)
+  cashReceived Decimal?  @db.Decimal(10, 2)
+  changeGiven  Decimal?  @db.Decimal(10, 2)
+  createdAt    DateTime  @default(now())
+  items        SaleItem[]
+
+  @@index([createdAt])
+}
+
+model SaleItem {
+  id        String  @id @default(cuid())
+  saleId    String
+  productId String
+  name      String
+  category  String
+  quantity  Int
+  costPrice Decimal @db.Decimal(10, 2)
+  sellPrice Decimal @db.Decimal(10, 2)
+  lineTotal Decimal @db.Decimal(10, 2)
+  lineProfit Decimal @db.Decimal(10, 2)
+  sale      Sale    @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([saleId])
+  @@index([productId])
+}
