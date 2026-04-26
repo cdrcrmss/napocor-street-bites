@@ -18,7 +18,6 @@
             posSearch: "",
             inventorySearch: "",
             cashInput: "",
-            calcInput: "",
             notice: ""
         };
 
@@ -136,7 +135,6 @@
 
         function resetPosInputs() {
             state.cashInput = "";
-            state.calcInput = "";
         }
 
         function addToCart(productId) {
@@ -230,50 +228,6 @@
             const current = getCashReceived();
             state.cashInput = String(current + value);
             renderWithFocus("cashInput");
-        }
-
-        function calculatorPress(text) {
-            if (text === "C") {
-                state.calcInput = "";
-                renderWithFocus("calculatorInput");
-                return;
-            }
-
-            if (text === "DEL") {
-                state.calcInput = state.calcInput.slice(0, -1);
-                renderWithFocus("calculatorInput");
-                return;
-            }
-
-            if (text === "=") {
-                const expr = state.calcInput.trim();
-                if (!expr) {
-                    return;
-                }
-
-                // Allow only simple arithmetic symbols.
-                const safe = /^[0-9+\-*/().\s]+$/.test(expr);
-                if (!safe) {
-                    setNotice("Calculator accepts numbers and + - * / only.");
-                    return;
-                }
-
-                try {
-                    const value = Function(`"use strict"; return (${expr});`)();
-                    if (!Number.isFinite(value)) {
-                        throw new Error("Invalid result");
-                    }
-                    state.calcInput = String(Math.round(value * 100) / 100);
-                } catch {
-                    setNotice("Invalid calculator expression.");
-                }
-
-                renderWithFocus("calculatorInput");
-                return;
-            }
-
-            state.calcInput += text;
-            renderWithFocus("calculatorInput");
         }
 
         function printReceipt(sale) {
@@ -519,10 +473,6 @@
                     addCashShortcut(Number(clickable.dataset.value || 0));
                     return;
                 }
-
-                if (clickable.dataset.action === "calc-key") {
-                    calculatorPress(clickable.dataset.key || "");
-                }
             });
 
             root.addEventListener("input", (event) => {
@@ -547,11 +497,6 @@
                     state.cashInput = sanitizeNumberInput(target.value);
                     renderWithFocus("cashInput");
                 }
-
-                if (target.id === "calculatorInput") {
-                    state.calcInput = target.value;
-                    renderWithFocus("calculatorInput");
-                }
             });
 
             root.addEventListener("change", async(event) => {
@@ -572,12 +517,15 @@
                     event.preventDefault();
 
                     const formData = new FormData(form);
+                    const costPrice = Number(formData.get("costPrice") || 0);
+                    const sellPrice = Number(formData.get("sellPrice") || 0);
+                    const stockRaw = Number(formData.get("stock") || 0);
                     const payload = {
                         name: String(formData.get("name") || "").trim(),
                         category: String(formData.get("category") || "").trim(),
-                        costPrice: Number(formData.get("costPrice") || 0),
-                        sellPrice: Number(formData.get("sellPrice") || 0),
-                        stock: Number(formData.get("stock") || 0)
+                        costPrice: Number.isFinite(costPrice) && costPrice >= 0 ? costPrice : 0,
+                        sellPrice: Number.isFinite(sellPrice) && sellPrice >= 0 ? sellPrice : 0,
+                        stock: Number.isFinite(stockRaw) && stockRaw >= 0 ? Math.trunc(stockRaw) : 0
                     };
 
                     if (!payload.name || !payload.category) {
@@ -720,9 +668,9 @@
           <form id="inventoryForm" class="spa-form">
             <label>Item Name<input class="spa-input" name="name" required></label>
             <label>Category<input class="spa-input" name="category" required></label>
-            <label>Original Price<input class="spa-input" type="number" step="0.01" name="costPrice" required></label>
+                        <label>Original Price<input class="spa-input" type="number" step="0.01" min="0" name="costPrice" placeholder="0.00 (optional)"></label>
             <label>Selling Price<input class="spa-input" type="number" step="0.01" name="sellPrice" required></label>
-            <label>Starting Stock<input class="spa-input" type="number" step="1" name="stock" required></label>
+                        <label>Starting Stock<input class="spa-input" type="number" step="1" min="0" name="stock" placeholder="0 (optional)"></label>
             <button class="spa-btn primary" type="submit">Save Item</button>
           </form>
         </article>
@@ -837,14 +785,6 @@
                 .join("");
         }
 
-        function renderCalcKeypad() {
-            const keys = ["7", "8", "9", "/", "4", "5", "6", "*", "1", "2", "3", "-", "0", ".", "=", "+"];
-
-            return keys
-                .map((key) => `<button class="spa-key" data-action="calc-key" data-key="${key}">${key}</button>`)
-                .join("");
-        }
-
         function renderPos() {
             const subtotal = getSubtotal();
             const cash = getCashReceived();
@@ -905,20 +845,6 @@
             </div>
             <div class="spa-keypad">
               ${renderCashKeypad()}
-            </div>
-          </div>
-
-          <div class="spa-calculator">
-            <div class="spa-card-head mini">
-              <h3>Calculator</h3>
-              <div>
-                <button class="spa-chip" data-action="calc-key" data-key="DEL">DEL</button>
-                <button class="spa-chip" data-action="calc-key" data-key="C">C</button>
-              </div>
-            </div>
-            <input id="calculatorInput" class="spa-input" value="${state.calcInput}" placeholder="e.g. 120+45/3">
-            <div class="spa-keypad calc">
-              ${renderCalcKeypad()}
             </div>
           </div>
 

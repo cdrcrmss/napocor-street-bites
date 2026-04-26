@@ -321,7 +321,7 @@
 }
 
 .spa-cash-panel,
-.spa-calculator {
+.spa-cash-panel {
     margin-top: 10px;
     border: 1px solid #ecdac5;
     border-radius: 14px;
@@ -345,10 +345,6 @@
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 6px;
-}
-
-.spa-keypad.calc {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .spa-key {
