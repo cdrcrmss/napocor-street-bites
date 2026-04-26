@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth";
 import { formatReceiptCode, getPeriodStart } from "@/lib/period";
 
+export const dynamic = "force-dynamic";
+
 const saleQuerySchema = z.object({
     period: z.enum(["all", "day", "week", "month"]).default("all"),
     search: z.string().optional()
@@ -43,35 +45,40 @@ export async function GET(request) {
         return auth.response;
     }
 
-    const { searchParams } = new URL(request.url);
-    const periodParam = searchParams.get("period");
-    const searchParam = searchParams.get("search");
-    const parsed = saleQuerySchema.safeParse({
-        period: periodParam ? periodParam : "all",
-        search: searchParam ? searchParam : undefined
-    });
+    try {
+        const { searchParams } = new URL(request.url);
+        const periodParam = searchParams.get("period");
+        const searchParam = searchParams.get("search");
+        const parsed = saleQuerySchema.safeParse({
+            period: periodParam ? periodParam : "all",
+            search: searchParam ? searchParam : undefined
+        });
 
-    if (!parsed.success) {
-        return Response.json({ error: "Invalid query" }, { status: 400 });
+        if (!parsed.success) {
+            return Response.json({ error: "Invalid query" }, { status: 400 });
+        }
+
+        const periodStart = getPeriodStart(parsed.data.period);
+        const search = parsed.data.search ? parsed.data.search.trim() : undefined;
+
+        const sales = await prisma.sale.findMany({
+            where: {
+                ...(periodStart ? { createdAt: { gte: periodStart } } : {}),
+                ...(search ? { receiptCode: { contains: search, mode: "insensitive" } } : {})
+            },
+            include: {
+                items: {
+                    orderBy: { name: "asc" }
+                }
+            },
+            orderBy: { createdAt: "desc" }
+        });
+
+        return Response.json({ sales: sales.map(saleToJson) });
+    } catch (error) {
+        console.error("GET /api/sales failed", error);
+        return Response.json({ error: "Failed to load sales history." }, { status: 500 });
     }
-
-    const periodStart = getPeriodStart(parsed.data.period);
-    const search = parsed.data.search ? parsed.data.search.trim() : undefined;
-
-    const sales = await prisma.sale.findMany({
-        where: {
-            ...(periodStart ? { createdAt: { gte: periodStart } } : {}),
-            ...(search ? { receiptCode: { contains: search, mode: "insensitive" } } : {})
-        },
-        include: {
-            items: {
-                orderBy: { name: "asc" }
-            }
-        },
-        orderBy: { createdAt: "desc" }
-    });
-
-    return Response.json({ sales: sales.map(saleToJson) });
 }
 
 export async function POST(request) {

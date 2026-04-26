@@ -82,8 +82,10 @@
         }
 
         async function api(path, options) {
+            const method = (options && options.method ? options.method : "GET").toUpperCase();
             const response = await fetch(path, {
                 ...options,
+                cache: method === "GET" ? "no-store" : undefined,
                 headers: {
                     "Content-Type": "application/json",
                     ...((options && options.headers) || {})
@@ -95,9 +97,23 @@
                 throw new Error("Unauthorized");
             }
 
-            const data = await response.json().catch(() => ({}));
+            const raw = await response.text();
+            let data = {};
+            if (raw) {
+                try {
+                    data = JSON.parse(raw);
+                } catch {
+                    data = { raw };
+                }
+            }
+
             if (!response.ok) {
-                throw new Error(data.error || "Request failed");
+                const fallbackText =
+                    typeof data.raw === "string" && data.raw.trim() ?
+                    data.raw.replace(/\s+/g, " ").slice(0, 180) :
+                    "Request failed";
+                const message = data.error || data.message || fallbackText;
+                throw new Error(`[${response.status}] ${message} (${method} ${path})`);
             }
 
             return data;
@@ -314,26 +330,63 @@
             }
         }
 
-        async function refresh() {
-            try {
-                const query = new URLSearchParams({
-                    period: state.filter,
-                    search: state.salesSearch
-                }).toString();
+        async function refresh(options = {}) {
+            const fetchProducts = options.products !== false;
+            const fetchSales = options.sales !== false;
+            const fetchAnalytics = options.analytics !== false;
 
-                const [productsRes, salesRes, analyticsRes] = await Promise.all([
-                    api("/api/products"),
-                    api(`/api/sales?${query}`),
-                    api("/api/analytics")
-                ]);
+            const query = new URLSearchParams({
+                period: state.filter,
+                search: state.salesSearch
+            }).toString();
 
-                state.products = productsRes.products || [];
-                state.sales = salesRes.sales || [];
-                state.analytics = analyticsRes || state.analytics;
-                render();
-            } catch (error) {
-                setNotice(error.message);
+            const [productsRes, salesRes, analyticsRes] = await Promise.allSettled([
+                fetchProducts ? api("/api/products") : Promise.resolve(null),
+                fetchSales ? api(`/api/sales?${query}`) : Promise.resolve(null),
+                fetchAnalytics ? api("/api/analytics") : Promise.resolve(null)
+            ]);
+
+            const errors = [];
+
+            if (fetchProducts) {
+                if (productsRes.status === "fulfilled") {
+                    state.products = productsRes.value.products || [];
+                } else {
+                    const message = productsRes.reason && productsRes.reason.message ? productsRes.reason.message : "Failed to load products.";
+                    if (message === "Unauthorized") {
+                        return;
+                    }
+                    errors.push(message);
+                }
             }
+
+            if (fetchSales) {
+                if (salesRes.status === "fulfilled") {
+                    state.sales = salesRes.value.sales || [];
+                } else {
+                    const message = salesRes.reason && salesRes.reason.message ? salesRes.reason.message : "Failed to load sales.";
+                    if (message !== "Unauthorized") {
+                        errors.push(message);
+                    }
+                }
+            }
+
+            if (fetchAnalytics) {
+                if (analyticsRes.status === "fulfilled") {
+                    state.analytics = analyticsRes.value || state.analytics;
+                } else {
+                    const message = analyticsRes.reason && analyticsRes.reason.message ? analyticsRes.reason.message : "Failed to load analytics.";
+                    if (message !== "Unauthorized") {
+                        errors.push(message);
+                    }
+                }
+            }
+
+            if (errors.length > 0) {
+                state.notice = `Some data failed to load: ${errors.join(" | ")}`;
+            }
+
+            render();
         }
 
         async function handleInventoryStock(productId, delta) {
@@ -342,7 +395,7 @@
                     method: "PATCH",
                     body: JSON.stringify({ stockDelta: delta })
                 });
-                await refresh();
+                await refresh({ products: true, sales: false, analytics: false });
             } catch (error) {
                 setNotice(error.message);
             }
@@ -357,7 +410,7 @@
                 await api(`/api/products/${productId}`, {
                     method: "DELETE"
                 });
-                await refresh();
+                await refresh({ products: true, sales: false, analytics: false });
             } catch (error) {
                 setNotice(error.message);
             }
@@ -389,7 +442,7 @@
                     method: "PATCH",
                     body: JSON.stringify({ costPrice, sellPrice })
                 });
-                await refresh();
+                await refresh({ products: true, sales: false, analytics: false });
             } catch (error) {
                 setNotice(error.message);
             }
@@ -539,7 +592,9 @@
                             body: JSON.stringify(payload)
                         });
                         form.reset();
-                        await refresh();
+                        state.inventorySearch = "";
+                        state.notice = `Saved item: ${payload.name}`;
+                        await refresh({ products: true, sales: false, analytics: false });
                     } catch (error) {
                         setNotice(error.message);
                     }
@@ -548,7 +603,7 @@
 
                 if (form.id === "salesSearchForm") {
                     event.preventDefault();
-                    await refresh();
+                    await refresh({ products: false, sales: true, analytics: false });
                 }
             });
         }
@@ -954,5 +1009,5 @@
 
   bindEvents();
   render();
-  refresh();
+    refresh({ products: true, sales: true, analytics: true });
 })();
