@@ -16,7 +16,7 @@ function StatCard({ title, icon: Icon, amount, profit, transactions, accent, ico
                 </div>
             </div>
             <p className="text-2xl font-bold text-gray-900 dark:text-white mb-1">{money(amount)}</p>
-            <div className="flex items-center gap-3 text-xs text-gray-400 dark:text-slate-500 mt-2">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-400 dark:text-slate-500 mt-2">
                 <span>{transactions} transactions</span>
                 <span className="text-gray-300 dark:text-slate-700">•</span>
                 <span className="text-emerald-600 dark:text-emerald-400 font-semibold">

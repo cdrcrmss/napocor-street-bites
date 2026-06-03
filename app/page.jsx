@@ -137,7 +137,7 @@ export default function AppPage() {
                         </div>
                     </div>
 
-                    <nav className="flex items-center gap-1 bg-gray-100 dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl p-1">
+                    <nav className="hidden sm:flex items-center gap-1 bg-gray-100 dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl p-1">
                         {TABS.map(({ id, label, icon: Icon }) => (
                             <button
                                 key={id}
@@ -153,6 +153,13 @@ export default function AppPage() {
                             </button>
                         ))}
                     </nav>
+
+                    <div className="sm:hidden flex items-center gap-1.5">
+                        <ActiveIcon className="w-4 h-4 text-orange-500" />
+                        <span className="text-sm font-bold text-gray-900 dark:text-white">
+                            {TABS.find((t) => t.id === tab)?.label}
+                        </span>
+                    </div>
 
                     <div className="flex items-center gap-2">
                         <button
@@ -198,7 +205,23 @@ export default function AppPage() {
                 </div>
             )}
 
-            <div className="max-w-screen-xl mx-auto px-4 sm:px-6 pt-24 pb-12">
+            {/* Mobile Bottom Nav */}
+            <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-800 flex">
+                {TABS.map(({ id, label, icon: Icon }) => (
+                    <button
+                        key={id}
+                        onClick={() => setTab(id)}
+                        className={`flex-1 flex flex-col items-center justify-center py-3 gap-1 transition-colors ${
+                            tab === id ? "text-orange-500" : "text-gray-400 dark:text-slate-500"
+                        }`}
+                    >
+                        <Icon className="w-5 h-5" />
+                        <span className="text-[10px] font-semibold leading-none">{label === "Point of Sale" ? "POS" : label}</span>
+                    </button>
+                ))}
+            </nav>
+
+            <div className="max-w-screen-xl mx-auto px-4 sm:px-6 pt-24 pb-28 sm:pb-12">
                 <div className="flex items-center gap-2 mb-6">
                     <ActiveIcon className="w-5 h-5 text-orange-500" />
                     <h1 className="text-xl font-bold text-gray-900 dark:text-white">

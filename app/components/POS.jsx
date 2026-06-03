@@ -100,7 +100,7 @@ export default function POS({ products, onRefresh, onNotice }) {
                         />
                     </div>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-[520px] overflow-y-auto pr-1">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-[45vh] xl:max-h-[520px] overflow-y-auto pr-1">
                     {filtered.length === 0 ? (
                         <p className="col-span-full text-gray-400 dark:text-slate-500 text-sm text-center py-8">No products found.</p>
                     ) : filtered.map((item) => {
