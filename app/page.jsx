@@ -189,19 +189,21 @@ export default function AppPage() {
             </div>
 
             {notice && (
-                <div className={`fixed top-20 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-2xl border text-sm font-medium max-w-sm w-full mx-4 transition-all ${
-                    notice.type === "error"
-                        ? "bg-red-50 dark:bg-red-900/90 border-red-200 dark:border-red-700 text-red-700 dark:text-red-200"
-                        : "bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-gray-800 dark:text-slate-200"
-                }`}>
-                    {notice.type === "error"
-                        ? <AlertCircle className="w-4 h-4 text-red-500 dark:text-red-400 flex-shrink-0" />
-                        : <CheckCircle className="w-4 h-4 text-emerald-500 dark:text-emerald-400 flex-shrink-0" />
-                    }
-                    <span className="flex-1">{notice.msg}</span>
-                    <button onClick={() => setNotice(null)} className="text-gray-400 dark:text-slate-500 hover:text-gray-700 dark:hover:text-slate-300 flex-shrink-0">
-                        <X className="w-4 h-4" />
-                    </button>
+                <div className="fixed bottom-24 sm:bottom-6 left-0 right-0 z-50 flex justify-center px-4 pointer-events-none">
+                    <div className={`pointer-events-auto flex items-center gap-3 px-4 py-3.5 rounded-2xl shadow-2xl border text-sm font-medium w-full max-w-md animate-slide-up ${
+                        notice.type === "error"
+                            ? "bg-red-600 dark:bg-red-700 border-red-500 dark:border-red-600 text-white"
+                            : "bg-gray-900 dark:bg-slate-800 border-gray-700 dark:border-slate-700 text-white"
+                    }`}>
+                        {notice.type === "error"
+                            ? <AlertCircle className="w-4 h-4 text-red-200 flex-shrink-0" />
+                            : <CheckCircle className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                        }
+                        <span className="flex-1">{notice.msg}</span>
+                        <button onClick={() => setNotice(null)} className="text-white/60 hover:text-white transition-colors flex-shrink-0 ml-1">
+                            <X className="w-4 h-4" />
+                        </button>
+                    </div>
                 </div>
             )}
 
