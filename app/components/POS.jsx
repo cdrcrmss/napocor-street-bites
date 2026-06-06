@@ -226,7 +226,7 @@ export default function POS({ products, onRefresh, onNotice }) {
                             </button>
                         )}
                     </div>
-                    <div className="grid grid-cols-4 gap-1">
+                    <div className="grid grid-cols-3 gap-1.5">
                         {KEYS.map((k) => (
                             <button
                                 key={k}
@@ -234,7 +234,13 @@ export default function POS({ products, onRefresh, onNotice }) {
                                     if (k === "⌫") setCashInput((p) => p.slice(0, -1));
                                     else setCashInput((p) => sanitizeNum(p + k));
                                 }}
-                                className="bg-gray-100 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-slate-300 font-semibold py-2 rounded-lg text-sm hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors"
+                                className={`py-3 rounded-xl text-sm font-bold transition-all active:scale-95 ${
+                                    k === "⌫"
+                                        ? "bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-500 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/50"
+                                        : k === "."
+                                        ? "bg-gray-200 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 text-gray-600 dark:text-slate-300 hover:bg-gray-300 dark:hover:bg-slate-600"
+                                        : "bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-800 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-700 shadow-sm"
+                                }`}
                             >
                                 {k}
                             </button>

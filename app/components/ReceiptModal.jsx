@@ -66,7 +66,7 @@ export function printSale(sale) {
 <body>
   <div class="center">
     <div class="store-name">NAPOCOR STREET BITES</div>
-    <div class="tagline">Napocor Village, Diliman, Quezon City</div>
+    <div class="tagline">Napocor Street, District 1, Cauayan City Isabela 3305</div>
   </div>
   <div class="divider"></div>
   <div class="meta">Receipt: <strong>${sale.receiptCode}</strong></div>
@@ -131,7 +131,7 @@ export default function ReceiptModal({ sale, onClose }) {
                     <div className="bg-white rounded-xl p-5 text-slate-900 font-mono text-sm shadow-inner">
                         <div className="text-center mb-4">
                             <p className="text-base font-black tracking-wide uppercase">Napocor Street Bites</p>
-                            <p className="text-xs text-slate-500 mt-0.5">Napocor Village, Diliman, QC</p>
+                            <p className="text-xs text-slate-500 mt-0.5">Napocor Street, District 1, Cauayan City Isabela 3305</p>
                         </div>
 
                         <div className="border-t border-dashed border-slate-300 my-3" />
